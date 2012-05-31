@@ -1,0 +1,3 @@
+<registry>    
+    <records interface="cs.auth.twitter.controlpanel.ITwitterLoginSettings" />
+</registry>
