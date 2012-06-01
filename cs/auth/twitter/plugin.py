@@ -1,10 +1,4 @@
-from zope.component import getUtility
-from plone.registry.interfaces import IRegistry
 import logging
-import json
-import urllib
-
-import oauth2 as oauth
 
 from zope.interface import implements
 from zope.publisher.browser import BrowserView
@@ -32,9 +26,12 @@ class SessionKeys:
     """Constants used to look up session keys
     """
     
-    user_id        =   "cs.auth.twitter.user_id"
-    screen_name    =   "cs.auth.twitter.screen_name"
-    oauth_token    =   "cs.auth.twitter.oauth_token"
+    user_id            =   "cs.auth.twitter.user_id"
+    screen_name        =   "cs.auth.twitter.screen_name"
+    name               =   "cs.auth.twitter.name"
+    profile_image_url  =   "cs.auth.twitter.profile_image_url"
+    description        =   "cs.auth.twitter.description"
+    oauth_token        =   "cs.auth.twitter.oauth_token"
     oauth_token_secret =   "cs.auth.twitter.oauth_token_secret"
 
 class AddForm(BrowserView):
@@ -201,7 +198,7 @@ class CSTwitterUsers(BasePlugin):
             return {}
         
         return {
-                'fullname': session.get(SessionKeys.screen_name),
+                'fullname': session.get(SessionKeys.screen_name, None),
             }
     
     #
