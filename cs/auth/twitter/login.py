@@ -12,14 +12,15 @@ from cs.auth.twitter import TWMessageFactory as _
 from cs.auth.twitter.plugin import SessionKeys
 
 import oauth2 as oauth
+import json
 
 from urlparse import parse_qsl
 
 
 TWITTER_REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
 TWITTER_ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token'
-
 TWITTER_AUTH_URL = 'https://api.twitter.com/oauth/authorize'
+TWITTER_USER_DATA_URL = 'https://api.twitter.com/1/users/show.json'
 
 class AuthorizationTokenKeys:
     """Constants used to look up authorization keys
@@ -113,7 +114,6 @@ class TwitterLoginVerify(BrowserView):
             return u""
 
         access_token = dict(parse_qsl(content))
-        
         # Save the data in the session so that the extraction plugin can 
         # authenticate the user to Plone
         session = ISession(self.request)
@@ -122,6 +122,6 @@ class TwitterLoginVerify(BrowserView):
         session[SessionKeys.oauth_token]        = access_token['oauth_token']
         session[SessionKeys.oauth_token_secret] = access_token['oauth_token_secret']
         session.save()
-        
+
         IStatusMessage(self.request).add(_(u"Welcome. You are now logged in."), type="info")
         self.request.response.redirect(self.context.absolute_url())
