@@ -1,6 +1,5 @@
 from zope.component import getUtility
 from plone.registry.interfaces import IRegistry
-import json
 import urllib
 
 from zope.publisher.browser import BrowserView
@@ -34,12 +33,13 @@ class AuthorizationTokenKeys:
 class TwitterLogin(BrowserView):
     """This view implements the Twitter OAuth login protocol.
 
-    The user may access the view via a link in an action or elsewhere. He
-    will then be immediately redirected to Twitter, which will ask him to
-    authorize this as an application.
-    
-    Assuming that works, Twitter will redirect the user back to this same
-    view, with a code in the request.
+    The user may access the view via a link in an action or elsewhere. 
+
+    We ask twitter an authentication token, save it in session and redirect
+    the user with this token to Twitter. 
+
+    The 2nd step of the process is handled by the next BrowserView
+
     """
     
     def __call__(self):
@@ -47,17 +47,19 @@ class TwitterLogin(BrowserView):
         TWITTER_CONSUMER_KEY = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_key').encode()
         TWITTER_CONSUMER_SECRET = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_secret').encode()
 
-
+        # Create an Oauth Consumer
         oauth_consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY,
                                         secret=TWITTER_CONSUMER_SECRET)
         
         oauth_client = oauth.Client(oauth_consumer)
 
+        # Set the callback URL. Be sure that callback urls are allowed in Twitter
+        # App configuration. Do not leave blank the field of the callback url
+        # when creating the app, otherwise this login method *will not work*.
         args = {
                 'oauth_callback' : self.context.absolute_url() + '/@@twitter-login-verify',                
             }
         body = urllib.urlencode(args)
-
         resp, content = oauth_client.request(TWITTER_REQUEST_TOKEN_URL, 'POST', body=body)
 
         if resp.get('status', '999') != '200':
@@ -65,12 +67,15 @@ class TwitterLogin(BrowserView):
             self.request.response.redirect(self.context.absolute_url())
             return u""
         else:
+            # The request was successful, so save the token in the session
+            # and redirect the user to Twitter
             request_token = dict(parse_qsl(content))
             session = ISession(self.request)
             session[AuthorizationTokenKeys.oauth_token] = request_token['oauth_token']
             session[AuthorizationTokenKeys.oauth_token_secret] = request_token['oauth_token_secret']
             session[AuthorizationTokenKeys.oauth_callback_confirmed] = request_token['oauth_callback_confirmed']
             session.save()
+            
             args = {
                 'oauth_token' : request_token['oauth_token'],                
             }
@@ -81,17 +86,23 @@ class TwitterLogin(BrowserView):
 
 
 class TwitterLoginVerify(BrowserView):
+    """
+        This BrowserView handles the 2nd step of the Oauth authentication with
+        Twitter.
 
+        It checks the authentication token saved in the 1st step against Twitter
+        and if it's successful saves everything in the session so that Plone's 
+        Authentication and Credential extraction plugin
+    """
     def __call__(self):
-        
-        session = ISession(self.request)
-        token = oauth.Token(session[AuthorizationTokenKeys.oauth_token],
-                            session[AuthorizationTokenKeys.oauth_token_secret],
-                            )
         registry = getUtility(IRegistry)
         TWITTER_CONSUMER_KEY = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_key').encode()
         TWITTER_CONSUMER_SECRET = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_secret').encode()
 
+        session = ISession(self.request)
+        token = oauth.Token(session[AuthorizationTokenKeys.oauth_token],
+                            session[AuthorizationTokenKeys.oauth_token_secret],
+                            )
         consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY,
                                  secret=TWITTER_CONSUMER_SECRET)
         client = oauth.Client(consumer, token)    
@@ -105,13 +116,11 @@ class TwitterLoginVerify(BrowserView):
         
         # Save the data in the session so that the extraction plugin can 
         # authenticate the user to Plone
-        
         session = ISession(self.request)
         session[SessionKeys.user_id]            = access_token['user_id']
         session[SessionKeys.screen_name]        = access_token['screen_name']
         session[SessionKeys.oauth_token]        = access_token['oauth_token']
         session[SessionKeys.oauth_token_secret] = access_token['oauth_token_secret']
-        
         session.save()
         
         IStatusMessage(self.request).add(_(u"Welcome. You are now logged in."), type="info")

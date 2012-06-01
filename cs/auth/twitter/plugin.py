@@ -1,4 +1,10 @@
+from zope.component import getUtility
+from plone.registry.interfaces import IRegistry
 import logging
+import json
+import urllib
+
+import oauth2 as oauth
 
 from zope.interface import implements
 from zope.publisher.browser import BrowserView
@@ -19,6 +25,8 @@ from Products.PluggableAuthService.interfaces.plugins import (
     )
 
 logger = logging.getLogger('cs.auth.twitter')
+
+TWITTER_SEARCH_URL = 'https://api.twitter.com/1/users/search.json'
 
 class SessionKeys:
     """Constants used to look up session keys
@@ -298,5 +306,3 @@ class CSTwitterUsers(BasePlugin):
                 'login': session[SessionKeys.screen_name],
                 'pluginid': self.getId(),
             },)
-        
-        return ()
