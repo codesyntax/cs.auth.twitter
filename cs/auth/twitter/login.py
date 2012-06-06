@@ -12,7 +12,6 @@ from cs.auth.twitter import TWMessageFactory as _
 from cs.auth.twitter.plugin import SessionKeys
 
 import oauth2 as oauth
-import json
 
 from urlparse import parse_qsl
 
@@ -121,7 +120,18 @@ class TwitterLoginVerify(BrowserView):
         session[SessionKeys.screen_name]        = access_token['screen_name']
         session[SessionKeys.oauth_token]        = access_token['oauth_token']
         session[SessionKeys.oauth_token_secret] = access_token['oauth_token_secret']
-        session.save()
+            
+        from twitter import Api
+        api = Api(consumer_key=TWITTER_CONSUMER_KEY,
+                  consumer_secret=TWITTER_CONSUMER_SECRET, 
+                  access_token_key=session[AuthorizationTokenKeys.oauth_token], 
+                  access_token_secret=session[AuthorizationTokenKeys.oauth_token_secret])
+        
+        us = api.GetUser(access_token['user_id'])
+        session[SessionKeys.profile_image_url] = us.profile_image_url
+        session[SessionKeys.description] = us.description
+        session[SessionKeys.location] = us.location
 
+        session.save()  
         IStatusMessage(self.request).add(_(u"Welcome. You are now logged in."), type="info")
         self.request.response.redirect(self.context.absolute_url())

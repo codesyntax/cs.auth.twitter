@@ -31,6 +31,7 @@ class SessionKeys:
     name               =   "cs.auth.twitter.name"
     profile_image_url  =   "cs.auth.twitter.profile_image_url"
     description        =   "cs.auth.twitter.description"
+    location           =   "cs.auth.twitter.location"
     oauth_token        =   "cs.auth.twitter.oauth_token"
     oauth_token_secret =   "cs.auth.twitter.oauth_token_secret"
 
@@ -198,7 +199,10 @@ class CSTwitterUsers(BasePlugin):
             return {}
         
         return {
-                'fullname': session.get(SessionKeys.screen_name, None),
+                'fullname': session.get(SessionKeys.screen_name, ''),
+                'description': session.get(SessionKeys.description, ''),
+                'location': session.get(SessionKeys.location, ''),
+
             }
     
     #
