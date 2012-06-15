@@ -56,8 +56,15 @@ class TwitterLogin(BrowserView):
         # Set the callback URL. Be sure that callback urls are allowed in Twitter
         # App configuration. Do not leave blank the field of the callback url
         # when creating the app, otherwise this login method *will not work*.
+        return_args = ''
+        if self.request.get('came_from', None) is not None:
+            return_args = {'came_from': self.request.get('came_from')}
+            return_args = '?' + urllib.urlencode(return_args)
+
         args = {
-                'oauth_callback' : self.context.absolute_url() + '/@@twitter-login-verify',                
+                'oauth_callback' : self.context.absolute_url() + 
+                                   '/@@twitter-login-verify' + 
+                                    return_args,
             }
         body = urllib.urlencode(args)
         resp, content = oauth_client.request(TWITTER_REQUEST_TOKEN_URL, 'POST', body=body)
@@ -128,10 +135,16 @@ class TwitterLoginVerify(BrowserView):
                   access_token_secret=session[AuthorizationTokenKeys.oauth_token_secret])
         
         us = api.GetUser(access_token['user_id'])
-        session[SessionKeys.profile_image_url] = us.profile_image_url
+        session[SessionKeys.profile_image_url] = us.profile_image_url        
         session[SessionKeys.description] = us.description
         session[SessionKeys.location] = us.location
 
-        session.save()  
+        session.save()
         IStatusMessage(self.request).add(_(u"Welcome. You are now logged in."), type="info")
-        self.request.response.redirect(self.context.absolute_url())
+        
+        return_args = ''
+        if self.request.get('came_from', None) is not None:
+            return_args = {'login_next': self.request.get('came_from')}
+            return_args = '?' + urllib.urlencode(return_args)
+
+        self.request.response.redirect(self.context.absolute_url() + '/logged_in' + return_args)
