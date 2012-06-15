@@ -197,7 +197,7 @@ class CSTwitterUsers(BasePlugin):
         # Is this an cs.auth.Twitter Twitter user?
         if session.get(SessionKeys.user_id, None) != user.getId():
             return {}
-        
+
         return {
                 'fullname': session.get(SessionKeys.screen_name, ''),
                 'description': session.get(SessionKeys.description, ''),
@@ -231,7 +231,7 @@ class CSTwitterUsers(BasePlugin):
             return ()
         
         # Is this an cs.auth.Twitter Twitter user?
-        if session.get(SessionKeys.userId, None) != principal.getId():
+        if session.get(SessionKeys.user_id, None) != principal.getId():
             return ()
         
         return ('Member',)
