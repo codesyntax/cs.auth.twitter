@@ -144,7 +144,7 @@ class TwitterLoginVerify(BrowserView):
         
         return_args = ''
         if self.request.get('came_from', None) is not None:
-            return_args = {'login_next': self.request.get('came_from')}
+            return_args = {'came_from': self.request.get('came_from')}
             return_args = '?' + urllib.urlencode(return_args)
 
         self.request.response.redirect(self.context.absolute_url() + '/logged_in' + return_args)
