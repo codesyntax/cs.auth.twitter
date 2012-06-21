@@ -1,3 +1,8 @@
+from zope.app.component.hooks import getSite
+from Products.CMFCore.utils import getToolByName
+from urlparse import parse_qsl
+from zope.component import getUtility
+from plone.registry.interfaces import IRegistry
 import logging
 
 from zope.interface import implements
@@ -15,8 +20,13 @@ from Products.PluggableAuthService.interfaces.plugins import (
         ICredentialsResetPlugin,
         IPropertiesPlugin,
         IRolesPlugin,
-        IUserEnumerationPlugin
+        IUserEnumerationPlugin,
+        IUserFactoryPlugin
     )
+
+import oauth2 as oauth
+from twitter import Api
+from user import TwitterUser
 
 logger = logging.getLogger('cs.auth.twitter')
 
@@ -68,6 +78,7 @@ class CSTwitterUsers(BasePlugin):
             IPropertiesPlugin,
             IRolesPlugin,
             IUserEnumerationPlugin,
+            IUserFactoryPlugin,
         )
     
     def __init__(self, id, title=None):
@@ -300,10 +311,33 @@ class CSTwitterUsers(BasePlugin):
         session = ISession(request, None)
         if session is None:
             return ()
-        
+          
         if exact_match and id == session.get(SessionKeys.user_id, None):
             return ({
                 'id': session[SessionKeys.user_id],
                 'login': session[SessionKeys.screen_name],
                 'pluginid': self.getId(),
             },)
+    
+        # site = getSite()
+        # mdata = getToolByName(site, 'portal_memberdata') 
+        # member = mdata._members.get(id)
+        
+        # if int(id) and member is not None:
+        #     return ({
+        #             'id': str(id),
+        #             'login': str(id),
+        #             'pluginid': self.getId(),
+        #         },)
+
+        return ()
+
+    # IUserFactoryPlugin interface
+    def createUser(self, user_id, name):
+        request = getRequest()
+        session = ISession(request, None)
+        # Create a TwitterUser just if we are loging in with Twitter
+        if session.get(SessionKeys.user_id):
+            return TwitterUser(user_id, name)
+
+        return None
