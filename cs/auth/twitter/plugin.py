@@ -206,15 +206,59 @@ class CSTwitterUsers(BasePlugin):
             return {}
         
         # Is this an cs.auth.Twitter Twitter user?
-        if session.get(SessionKeys.user_id, None) != user.getId():
-            return {}
-
-        return {
+        if session.get(SessionKeys.user_id, None) == user.getId():            
+            return {
                 'fullname': session.get(SessionKeys.screen_name, ''),
                 'description': session.get(SessionKeys.description, ''),
                 'location': session.get(SessionKeys.location, ''),
-
             }
+
+        else:
+            try:
+                # Twitter user_ids are integers, so we can check if this is a
+                # valid id and if not, avoid the Twitter API query overhead 
+                user_id = int(user.getId())
+            except ValueError:
+                # The
+                return {}
+
+            registry = getUtility(IRegistry)
+            TWITTER_CONSUMER_KEY = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_key').encode()
+            TWITTER_CONSUMER_SECRET = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_secret').encode()
+            # import here to avoid circular dependencies
+            from login import TWITTER_REQUEST_TOKEN_URL
+            # Create an Oauth Consumer
+            oauth_consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY,
+                                            secret=TWITTER_CONSUMER_SECRET)
+            
+            oauth_client = oauth.Client(oauth_consumer)
+            resp, content = oauth_client.request(TWITTER_REQUEST_TOKEN_URL, 'GET')
+            if resp.get('status', '999') != '200':
+                return {}
+
+            content = dict(parse_qsl(content))
+            oauth_token = content['oauth_token']
+            oauth_token_secret = content['oauth_token_secret']
+            
+            api = Api(consumer_key=TWITTER_CONSUMER_KEY,
+                      consumer_secret=TWITTER_CONSUMER_SECRET, 
+                      access_token_key=oauth_token, 
+                      access_token_secret=oauth_token_secret)
+
+            us = api.GetUser(user.getId())
+            if us.id is not None:
+
+                return {
+                        'fullname': us.name,
+                        'description': us.description,
+                        'location': us.location,
+                }
+
+            return {}
+
+
+
+
     
     #
     # IRolesPlugin
@@ -241,7 +285,6 @@ class CSTwitterUsers(BasePlugin):
         if session is None:
             return ()
         
-        # Is this an cs.auth.Twitter Twitter user?
         if session.get(SessionKeys.user_id, None) != principal.getId():
             return ()
         
@@ -311,7 +354,7 @@ class CSTwitterUsers(BasePlugin):
         session = ISession(request, None)
         if session is None:
             return ()
-          
+        
         if exact_match and id == session.get(SessionKeys.user_id, None):
             return ({
                 'id': session[SessionKeys.user_id],
@@ -319,16 +362,26 @@ class CSTwitterUsers(BasePlugin):
                 'pluginid': self.getId(),
             },)
     
-        # site = getSite()
-        # mdata = getToolByName(site, 'portal_memberdata') 
-        # member = mdata._members.get(id)
-        
-        # if int(id) and member is not None:
-        #     return ({
-        #             'id': str(id),
-        #             'login': str(id),
-        #             'pluginid': self.getId(),
-        #         },)
+        elif id != session.get(SessionKeys.user_id, None):
+            try:
+                # Tw
+                # Twitter user_ids are integers, so we can check if this is a
+                # valid id and if not, avoid the Twitter API query overhead 
+                user_id = int(id)
+            except ValueError:
+                return ()
+
+            
+            site = getSite()
+            mdata = getToolByName(site, 'portal_memberdata') 
+            member_data = mdata._members.get(id)
+            
+            if member_data is not None:
+                return ({
+                         'id': id,
+                         'login': id,
+                         'pluginid': self.getId(),
+                     },)
 
         return ()
 
@@ -340,4 +393,4 @@ class CSTwitterUsers(BasePlugin):
         if session.get(SessionKeys.user_id):
             return TwitterUser(user_id, name)
 
-        return None
+        return None   
