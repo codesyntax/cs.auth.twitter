@@ -11,6 +11,7 @@ from zope.publisher.browser import BrowserView
 from zope.globalrequest import getRequest
 
 from collective.beaker.interfaces import ISession
+from collective.beaker.interfaces import ICacheManager
 
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 
@@ -26,8 +27,8 @@ from Products.PluggableAuthService.interfaces.plugins import (
 
 import oauth2 as oauth
 from twitter import Api
-from user import TwitterUser
-
+from cs.auth.twitter.user import TwitterUser
+from cs.auth.twitter.interfaces import ITwitterUser
 logger = logging.getLogger('cs.auth.twitter')
 
 TWITTER_SEARCH_URL = 'https://api.twitter.com/1/users/search.json'
@@ -214,13 +215,11 @@ class CSTwitterUsers(BasePlugin):
             }
 
         else:
-            try:
-                # Twitter user_ids are integers, so we can check if this is a
-                # valid id and if not, avoid the Twitter API query overhead 
-                user_id = int(user.getId())
-            except ValueError:
-                # The
+            # If this is a Twitter User, it implements ITwitterUser
+            if not ITwitterUser.providedBy(user):
                 return {}
+
+
 
             registry = getUtility(IRegistry)
             TWITTER_CONSUMER_KEY = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_key').encode()
