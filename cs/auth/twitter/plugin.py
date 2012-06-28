@@ -1,6 +1,5 @@
 from zope.app.component.hooks import getSite
 from Products.CMFCore.utils import getToolByName
-from urlparse import parse_qsl
 from zope.component import getUtility
 from plone.registry.interfaces import IRegistry
 import logging
@@ -25,7 +24,6 @@ from Products.PluggableAuthService.interfaces.plugins import (
         IUserFactoryPlugin
     )
 
-import oauth2 as oauth
 from twitter import Api
 from cs.auth.twitter.user import TwitterUser
 from cs.auth.twitter.interfaces import ITwitterUser
@@ -209,7 +207,7 @@ class CSTwitterUsers(BasePlugin):
         # Is this an cs.auth.Twitter Twitter user?
         if session.get(SessionKeys.user_id, None) == user.getId():            
             return {
-                'fullname': session.get(SessionKeys.screen_name, ''),
+                'fullname': session.get(SessionKeys.name, ''),
                 'description': session.get(SessionKeys.description, ''),
                 'location': session.get(SessionKeys.location, ''),
             }
@@ -219,46 +217,46 @@ class CSTwitterUsers(BasePlugin):
             if not ITwitterUser.providedBy(user):
                 return {}
 
-
-
-            registry = getUtility(IRegistry)
-            TWITTER_CONSUMER_KEY = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_key').encode()
-            TWITTER_CONSUMER_SECRET = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_secret').encode()
-            # import here to avoid circular dependencies
-            from login import TWITTER_REQUEST_TOKEN_URL
-            # Create an Oauth Consumer
-            oauth_consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY,
-                                            secret=TWITTER_CONSUMER_SECRET)
+            # Try to bring user data from the cache 
+            # to avoid queries to Twitter API
             
-            oauth_client = oauth.Client(oauth_consumer)
-            resp, content = oauth_client.request(TWITTER_REQUEST_TOKEN_URL, 'GET')
-            if resp.get('status', '999') != '200':
-                return {}
-
-            content = dict(parse_qsl(content))
-            oauth_token = content['oauth_token']
-            oauth_token_secret = content['oauth_token_secret']
-            
-            api = Api(consumer_key=TWITTER_CONSUMER_KEY,
-                      consumer_secret=TWITTER_CONSUMER_SECRET, 
-                      access_token_key=oauth_token, 
-                      access_token_secret=oauth_token_secret)
-
-            us = api.GetUser(user.getId())
-            if us.id is not None:
-
+            cacheManager = getUtility(ICacheManager)
+            twitter_user_cache = cacheManager.get_cache('cs-twitter-users', expires=86400)
+            if twitter_user_cache.has_key(user.getId()):
+                cached_user_data = twitter_user_cache.get(user.getId())
                 return {
-                        'fullname': us.name,
-                        'description': us.description,
-                        'location': us.location,
+                        'fullname': cached_user_data['fullname'],
+                        'description': cached_user_data['description'],
+                        'location': cached_user_data['location'],
                 }
 
-            return {}
+            else:
+                registry = getUtility(IRegistry)
+                TWITTER_CONSUMER_KEY = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_key').encode()
+                TWITTER_CONSUMER_SECRET = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_secret').encode()
+                TWITTER_ACCESS_TOKEN = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_access_token').encode()
+                TWITTER_ACCESS_TOKEN_SECRET = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_access_token_secret').encode()
+                
+                api = Api(consumer_key=TWITTER_CONSUMER_KEY,
+                          consumer_secret=TWITTER_CONSUMER_SECRET, 
+                          access_token_key=TWITTER_ACCESS_TOKEN, 
+                          access_token_secret=TWITTER_ACCESS_TOKEN_SECRET)
+                try:
+                    us = api.GetUser(user.getId())
+                except:
+                    return {}
 
+                if us.id is not None:
+                    user_data =  {
+                            'fullname': us.name,
+                            'description': us.description,
+                            'location': us.location,
+                    }
+                    twitter_user_cache.put(user.getId(), user_data)
+                    return user_data
 
+                return {}
 
-
-    
     #
     # IRolesPlugin
     # 

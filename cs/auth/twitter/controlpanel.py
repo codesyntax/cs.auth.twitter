@@ -14,6 +14,12 @@ class ITwitterLoginSettings(Interface):
     twitter_consumer_secret = schema.TextLine(title=_(u'Twitter Consumer Secret'), 
                                     description=_(u'The App Secret Key you got when creating the app at https://dev.twitter.com/apps/new'))
 
+    twitter_access_token = schema.TextLine(title=_(u'Twitter Access Token'), 
+                                    description=_(u'The Access Token of your app you got when creating the app at https://dev.twitter.com/apps/new'))
+
+    twitter_access_token_secret = schema.TextLine(title=_(u'Twitter Access Token Secret'), 
+                                    description=_(u'The Access Token Secret of your app you got when creating the app at https://dev.twitter.com/apps/new'))
+
 
 class TwitterLoginControlPanelForm(RegistryEditForm):
     schema = ITwitterLoginSettings

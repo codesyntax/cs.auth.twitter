@@ -135,6 +135,7 @@ class TwitterLoginVerify(BrowserView):
                   access_token_secret=session[AuthorizationTokenKeys.oauth_token_secret])
         
         us = api.GetUser(access_token['user_id'])
+        session[SessionKeys.name] = us.name        
         session[SessionKeys.profile_image_url] = us.profile_image_url        
         session[SessionKeys.description] = us.description
         session[SessionKeys.location] = us.location
