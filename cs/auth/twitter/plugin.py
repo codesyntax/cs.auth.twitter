@@ -219,7 +219,6 @@ class CSTwitterUsers(BasePlugin):
 
             # Try to bring user data from the cache 
             # to avoid queries to Twitter API
-            
             cacheManager = getUtility(ICacheManager)
             twitter_user_cache = cacheManager.get_cache('cs-twitter-users', expires=86400)
             if twitter_user_cache.has_key(user.getId()):
@@ -246,7 +245,7 @@ class CSTwitterUsers(BasePlugin):
                 except:
                     return {}
 
-                if us.id is not None:
+                if us.id is not None:                    
                     user_data =  {
                             'fullname': us.name,
                             'description': us.description,
@@ -361,7 +360,6 @@ class CSTwitterUsers(BasePlugin):
     
         elif id != session.get(SessionKeys.user_id, None):
             try:
-                # Tw
                 # Twitter user_ids are integers, so we can check if this is a
                 # valid id and if not, avoid the Twitter API query overhead 
                 user_id = int(id)
@@ -384,10 +382,35 @@ class CSTwitterUsers(BasePlugin):
 
     # IUserFactoryPlugin interface
     def createUser(self, user_id, name):
-        request = getRequest()
-        session = ISession(request, None)
-        # Create a TwitterUser just if we are loging in with Twitter
-        if session.get(SessionKeys.user_id):
+        # Create a TwitterUser just if this is a Twitter User id
+        # Try to bring user data from the cache 
+        # to avoid queries to Twitter API
+        cacheManager = getUtility(ICacheManager)
+        twitter_user_cache = cacheManager.get_cache('cs-twitter-users', expires=86400)
+        if twitter_user_cache.has_key(user_id):
             return TwitterUser(user_id, name)
+        else:
+            registry = getUtility(IRegistry)
+            TWITTER_CONSUMER_KEY = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_key').encode()
+            TWITTER_CONSUMER_SECRET = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_secret').encode()
+            TWITTER_ACCESS_TOKEN = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_access_token').encode()
+            TWITTER_ACCESS_TOKEN_SECRET = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_access_token_secret').encode()
+            
+            api = Api(consumer_key=TWITTER_CONSUMER_KEY,
+                      consumer_secret=TWITTER_CONSUMER_SECRET, 
+                      access_token_key=TWITTER_ACCESS_TOKEN, 
+                      access_token_secret=TWITTER_ACCESS_TOKEN_SECRET)
+            try:
+                us = api.GetUser(user_id)
+                user_data =  {
+                            'fullname': us.name,
+                            'description': us.description,
+                            'location': us.location,
+                    }
+                    
+                twitter_user_cache.put(user_id, user_data)
+                return TwitterUser(us.id, us.name)
+            except:
+                return None
 
         return None   
