@@ -1,3 +1,4 @@
+from BTrees.OOBTree import OOBTree
 from zope.app.component.hooks import getSite
 from Products.CMFCore.utils import getToolByName
 from zope.component import getUtility
@@ -26,7 +27,7 @@ from Products.PluggableAuthService.interfaces.plugins import (
 
 from twitter import Api
 from cs.auth.twitter.user import TwitterUser
-from cs.auth.twitter.interfaces import ITwitterUser
+from cs.auth.twitter.interfaces import ITwitterUser, ICSTwitterPlugin
 logger = logging.getLogger('cs.auth.twitter')
 
 TWITTER_SEARCH_URL = 'https://api.twitter.com/1/users/search.json'
@@ -71,6 +72,7 @@ class CSTwitterUsers(BasePlugin):
     
     # List PAS interfaces we implement here
     implements(
+            ICSTwitterPlugin,
             IExtractionPlugin,
             ICredentialsResetPlugin,
             IAuthenticationPlugin,
@@ -83,11 +85,12 @@ class CSTwitterUsers(BasePlugin):
     def __init__(self, id, title=None):
         self.__name__ = self.id = id
         self.title = title
+        # To store user data for logged in users
+        self._storage = OOBTree()
+    
     #
     # IExtractionPlugin
-    # 
-
-    
+    #   
     def extractCredentials(self, request):
         """This method is called on every request to extract credentials.
         In our case, that means looking for the values we store in the
@@ -217,47 +220,12 @@ class CSTwitterUsers(BasePlugin):
             if not ITwitterUser.providedBy(user):
                 return {}
 
-            # Try to bring user data from the cache 
-            # to avoid queries to Twitter API
-            cacheManager = getUtility(ICacheManager)
-            twitter_user_cache = cacheManager.get_cache('cs-twitter-users', expires=86400)
-            if twitter_user_cache.has_key(user.getId()):
-                cached_user_data = twitter_user_cache.get(user.getId())
-                return {
-                        'fullname': cached_user_data['fullname'],
-                        'description': cached_user_data['description'],
-                        'location': cached_user_data['location'],
-                }
-
             else:
-                registry = getUtility(IRegistry)
-                TWITTER_CONSUMER_KEY = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_key').encode()
-                TWITTER_CONSUMER_SECRET = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_secret').encode()
-                TWITTER_ACCESS_TOKEN = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_access_token').encode()
-                TWITTER_ACCESS_TOKEN_SECRET = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_access_token_secret').encode()
-                
-                api = Api(consumer_key=TWITTER_CONSUMER_KEY,
-                          consumer_secret=TWITTER_CONSUMER_SECRET, 
-                          access_token_key=TWITTER_ACCESS_TOKEN, 
-                          access_token_secret=TWITTER_ACCESS_TOKEN_SECRET)
-                try:
-                    us = api.GetUser(user.getId())
-                except Exception,e:
-                    from logging import getLogger
-                    log = getLogger(__name__)
-                    log.info(e)
+                user_data = self._storage.get(user.getId(), None)
+                if user_data is None:
                     return {}
 
-                if us.id is not None:                    
-                    user_data =  {
-                            'fullname': us.name,
-                            'description': us.description,
-                            'location': us.location,
-                    }
-                    twitter_user_cache.put(user.getId(), user_data)
-                    return user_data
-
-                return {}
+                return user_data
 
     #
     # IRolesPlugin
@@ -369,12 +337,8 @@ class CSTwitterUsers(BasePlugin):
             except ValueError:
                 return ()
 
-            
-            site = getSite()
-            mdata = getToolByName(site, 'portal_memberdata') 
-            member_data = mdata._members.get(id)
-            
-            if member_data is not None:
+            user_data = self._storage.get(id, None)
+            if user_data is not None:
                 return ({
                          'id': id,
                          'login': id,
@@ -385,39 +349,9 @@ class CSTwitterUsers(BasePlugin):
 
     # IUserFactoryPlugin interface
     def createUser(self, user_id, name):
-        # Create a TwitterUser just if this is a Twitter User id
-        # Try to bring user data from the cache 
-        # to avoid queries to Twitter API
-        import pdb; pdb.set_trace()
-        cacheManager = getUtility(ICacheManager)
-        twitter_user_cache = cacheManager.get_cache('cs-twitter-users', expires=86400)
-        if twitter_user_cache.has_key(user_id):
+        # Create a TwitterUser just if this is a Twitter User id 
+        user_data = self._storage.get(user_id, None)
+        if user_data is not None:
             return TwitterUser(user_id, name)
-        else:
-            registry = getUtility(IRegistry)
-            TWITTER_CONSUMER_KEY = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_key').encode()
-            TWITTER_CONSUMER_SECRET = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_consumer_secret').encode()
-            TWITTER_ACCESS_TOKEN = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_access_token').encode()
-            TWITTER_ACCESS_TOKEN_SECRET = registry.get('cs.auth.twitter.controlpanel.ITwitterLoginSettings.twitter_access_token_secret').encode()
-            
-            api = Api(consumer_key=TWITTER_CONSUMER_KEY,
-                      consumer_secret=TWITTER_CONSUMER_SECRET, 
-                      access_token_key=TWITTER_ACCESS_TOKEN, 
-                      access_token_secret=TWITTER_ACCESS_TOKEN_SECRET)
-            try:
-                us = api.GetUser(user_id)
-                user_data =  {
-                            'fullname': us.name,
-                            'description': us.description,
-                            'location': us.location,
-                    }
-                    
-                twitter_user_cache.put(user_id, user_data)
-                return TwitterUser(us.id, us.name)
-            except Exception,e:
-                from logging import getLogger
-                log = getLogger(__name__)
-                log.info(e)
-                return None
-
-        return None   
+        
+        return None

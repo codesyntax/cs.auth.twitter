@@ -12,3 +12,8 @@ class ITwitterUser(Interface):
     Marker interface for Users logged in through Twitter
 
     """
+
+class ICSTwitterPlugin(Interface):
+    """
+    Marker interface
+    """

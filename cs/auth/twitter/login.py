@@ -14,7 +14,8 @@ from cs.auth.twitter.plugin import SessionKeys
 import oauth2 as oauth
 
 from urlparse import parse_qsl
-
+from Products.PluggableAuthService.interfaces.plugins import IExtractionPlugin
+from interfaces import ICSTwitterPlugin
 
 TWITTER_REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
 TWITTER_ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token'
@@ -139,8 +140,25 @@ class TwitterLoginVerify(BrowserView):
         session[SessionKeys.profile_image_url] = us.profile_image_url        
         session[SessionKeys.description] = us.description
         session[SessionKeys.location] = us.location
-
         session.save()
+
+        # Add user data into our plugin storage:
+        acl = self.context.acl_users
+        acl_plugins = acl.plugins
+        ids = acl_plugins.listPluginIds(IExtractionPlugin)
+        for id in ids:
+            plugin = getattr(acl_plugins, id)
+            if ICSTwitterPlugin.providedBy(plugin):
+                if plugin._storage.get(session[SessionKeys.user_id], None) is None:
+                    user_data = {'screen_name': session[SessionKeys.screen_name],
+                                 'fullname': session[SessionKeys.name],
+                                 'profile_image_url': session[SessionKeys.profile_image_url],
+                                 'description': session[SessionKeys.description],
+                                 'location': session[SessionKeys.location]
+                                     }
+                    plugin._storage[session[SessionKeys.user_id]] = user_data
+
+
         IStatusMessage(self.request).add(_(u"Welcome. You are now logged in."), type="info")
         
         return_args = ''
