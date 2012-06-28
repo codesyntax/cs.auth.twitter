@@ -242,7 +242,10 @@ class CSTwitterUsers(BasePlugin):
                           access_token_secret=TWITTER_ACCESS_TOKEN_SECRET)
                 try:
                     us = api.GetUser(user.getId())
-                except:
+                except Exception,e:
+                    from logging import getLogger
+                    log = getLogger(__name__)
+                    log.info(e)
                     return {}
 
                 if us.id is not None:                    
@@ -385,6 +388,7 @@ class CSTwitterUsers(BasePlugin):
         # Create a TwitterUser just if this is a Twitter User id
         # Try to bring user data from the cache 
         # to avoid queries to Twitter API
+        import pdb; pdb.set_trace()
         cacheManager = getUtility(ICacheManager)
         twitter_user_cache = cacheManager.get_cache('cs-twitter-users', expires=86400)
         if twitter_user_cache.has_key(user_id):
@@ -410,7 +414,10 @@ class CSTwitterUsers(BasePlugin):
                     
                 twitter_user_cache.put(user_id, user_data)
                 return TwitterUser(us.id, us.name)
-            except:
+            except Exception,e:
+                from logging import getLogger
+                log = getLogger(__name__)
+                log.info(e)
                 return None
 
         return None   
