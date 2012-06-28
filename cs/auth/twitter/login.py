@@ -123,7 +123,7 @@ class TwitterLoginVerify(BrowserView):
         # Save the data in the session so that the extraction plugin can 
         # authenticate the user to Plone
         session = ISession(self.request)
-        session[SessionKeys.user_id]            = access_token['user_id']
+        session[SessionKeys.user_id]            = str(access_token['user_id'])
         session[SessionKeys.screen_name]        = access_token['screen_name']
         session[SessionKeys.oauth_token]        = access_token['oauth_token']
         session[SessionKeys.oauth_token_secret] = access_token['oauth_token_secret']
@@ -134,7 +134,7 @@ class TwitterLoginVerify(BrowserView):
                   access_token_key=session[AuthorizationTokenKeys.oauth_token], 
                   access_token_secret=session[AuthorizationTokenKeys.oauth_token_secret])
         
-        us = api.GetUser(access_token['user_id'])
+        us = api.GetUser(str(access_token['user_id']))
         session[SessionKeys.name] = us.name        
         session[SessionKeys.profile_image_url] = us.profile_image_url        
         session[SessionKeys.description] = us.description
