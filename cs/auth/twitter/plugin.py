@@ -1,8 +1,4 @@
 from BTrees.OOBTree import OOBTree
-from zope.app.component.hooks import getSite
-from Products.CMFCore.utils import getToolByName
-from zope.component import getUtility
-from plone.registry.interfaces import IRegistry
 import logging
 
 from zope.interface import implements
@@ -11,7 +7,6 @@ from zope.publisher.browser import BrowserView
 from zope.globalrequest import getRequest
 
 from collective.beaker.interfaces import ISession
-from collective.beaker.interfaces import ICacheManager
 
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 
@@ -25,7 +20,6 @@ from Products.PluggableAuthService.interfaces.plugins import (
         IUserFactoryPlugin
     )
 
-from twitter import Api
 from cs.auth.twitter.user import TwitterUser
 from cs.auth.twitter.interfaces import ITwitterUser, ICSTwitterPlugin
 logger = logging.getLogger('cs.auth.twitter')
