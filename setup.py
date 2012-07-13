@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.0'
+version = '1.0b1'
 
 setup(name='cs.auth.twitter',
       version=version,
@@ -14,7 +14,7 @@ setup(name='cs.auth.twitter',
         "Framework :: Plone",
         "Programming Language :: Python",
         ],
-      keywords='',
+      keywords='pas plugin plone authentication twitter',
       author='Mikel Larreategi',
       author_email='mlarreategi@codesyntax.com',
       url='http://github.com/codesyntax/cs.auth.twitter/',
@@ -31,7 +31,6 @@ setup(name='cs.auth.twitter',
           'five.globalrequest',
           'collective.beaker',
           'python-twitter',
-          'tweepy',
           'Products.PluggableAuthService',
           'Products.PlonePAS',
           'Products.statusmessages',
