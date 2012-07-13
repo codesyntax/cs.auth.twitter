@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: cs.auth.twitter\n"
-"POT-Creation-Date: 2012-07-13 09:02+0000\n"
-"PO-Revision-Date: 2012-07-13 11:46+0100\n"
+"POT-Creation-Date: 2012-07-13 11:45+0000\n"
+"PO-Revision-Date: 2012-07-13 13:46+0100\n"
 "Last-Translator: Mikel Larreategi <mlarreategi@codesyntax.com>\n"
 "Language-Team: eu <eu@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -22,6 +22,10 @@ msgstr "Errorea Twitterrekin autentikatzean. Saiatu berriz mesedez."
 #: ./login.py:74
 msgid "Error getting the authorization token from Twitter. Try again please"
 msgstr "Errorea Twitterretik autentikazio tokena lortzerakoan. Saiatu berriz mesedez."
+
+#: ./profiles/default/actions.xml
+msgid "Log in with Twitter"
+msgstr "Sartu Twitter erabiliz"
 
 #: ./controlpanel.py:21
 msgid "The Access Token Secret of your app you got when creating the app at https://dev.twitter.com/apps/new"
