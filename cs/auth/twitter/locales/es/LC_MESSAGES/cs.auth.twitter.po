@@ -1,0 +1,69 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: cs.auth.twitter\n"
+"POT-Creation-Date: 2012-07-13 09:02+0000\n"
+"PO-Revision-Date: 2012-07-13 13:30+0100\n"
+"Last-Translator: Mikel Larreategi <mlarreategi@codesyntax.com>\n"
+"Language-Team: es <es@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0\n"
+"Language-Code: en\n"
+"Language-Name: English\n"
+"Preferred-Encodings: utf-8 latin1\n"
+"Domain: DOMAIN\n"
+"X-Poedit-Language: Spanish\n"
+
+#: ./login.py:119
+msgid "Error authenticating with Twitter. Please try again."
+msgstr "Ha ocurrido un error al autenticarse en Twitter. Inténtelo otra vez por favor."
+
+#: ./login.py:74
+msgid "Error getting the authorization token from Twitter. Try again please"
+msgstr "Ha ocurrido un error obteniendo la autorización de Twitter. Inténtelo otra vez por favor."
+
+#: ./controlpanel.py:21
+msgid "The Access Token Secret of your app you got when creating the app at https://dev.twitter.com/apps/new"
+msgstr "El 'Access Token Secret' de su aplicación Twitter. Cree una aplicación en https://dev.twitter.com/apps/new"
+
+#: ./controlpanel.py:18
+msgid "The Access Token of your app you got when creating the app at https://dev.twitter.com/apps/new"
+msgstr "El 'Access Token' de su aplicación Twitter. Cree una aplicación en https://dev.twitter.com/apps/new"
+
+#: ./controlpanel.py:12
+msgid "The App ID/API Key you got when creating the app at https://dev.twitter.com/apps/new"
+msgstr "El 'App ID/API Key' de su aplicación Twitter. Cree una aplicación en https://dev.twitter.com/apps/new"
+
+#: ./controlpanel.py:15
+msgid "The App Secret Key you got when creating the app at https://dev.twitter.com/apps/new"
+msgstr "El 'App Secret Key' de su aplicación Twitter. Cree una aplicación en https://dev.twitter.com/apps/new"
+
+#: ./controlpanel.py:11
+msgid "Twiter Consumer Key"
+msgstr "Twitter Consumer Key"
+
+#: ./controlpanel.py:17
+msgid "Twitter Access Token"
+msgstr "Twitter Access Token"
+
+#: ./controlpanel.py:20
+msgid "Twitter Access Token Secret"
+msgstr "Twitter Access Token Secret"
+
+#: ./controlpanel.py:14
+msgid "Twitter Consumer Secret"
+msgstr "Twitter Consumer Secret"
+
+#: ./controlpanel.py:28
+msgid "Twitter Login settings"
+msgstr "Configuración del login con Twitter"
+
+#: ./profiles/default/controlpanel.xml
+msgid "Twitter login Settings"
+msgstr "Twitter login Settings"
+
+#: ./login.py:162
+msgid "Welcome. You are now logged in."
+msgstr "Bienvenido, ha accedido correctamente."
+
