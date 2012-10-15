@@ -311,25 +311,14 @@ class CSTwitterUsers(BasePlugin):
           scaling issues for some implementations.
         """
         
-        request = getRequest()
-        session = ISession(request, None)
-        if session is None:
-            return ()
-        
-        if exact_match and id == session.get(SessionKeys.user_id, None):
-            return ({
-                'id': session[SessionKeys.user_id],
-                'login': session[SessionKeys.screen_name],
-                'pluginid': self.getId(),
-            },)
-    
-        elif id != session.get(SessionKeys.user_id, None):
-            try:
-                # Twitter user_ids are integers, so we can check if this is a
-                # valid id and if not, avoid the Twitter API query overhead 
-                user_id = int(id)
-            except ValueError:
-                return ()
+        if exact_match:
+            if id is not None:
+                try:
+                    # Twitter user_ids are integers, so we can check if this is a
+                    # valid id and if not, avoid the Twitter API query overhead 
+                    user_id = int(id)
+                except ValueError:
+                    return ()
 
             user_data = self._storage.get(id, None)
             if user_data is not None:
@@ -338,8 +327,17 @@ class CSTwitterUsers(BasePlugin):
                          'login': id,
                          'pluginid': self.getId(),
                      },)
+            return ()
 
-        return ()
+        else:
+            data = []
+            for id, user_data in self._storage.items():
+                data.append({
+                         'id': id,
+                         'login': id,
+                         'pluginid': self.getId(),
+                    })
+            return data
 
     # IUserFactoryPlugin interface
     def createUser(self, user_id, name):
