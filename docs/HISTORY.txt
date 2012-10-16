@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0b2 (UNRELEASED)
+1.0b2 (2012/10/16)
 -------------------
 
 - Inherit from PloneUser instead of PropertiedUser
