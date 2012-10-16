@@ -1,26 +1,24 @@
-from zope.component import getUtility
-from plone.registry.interfaces import IRegistry
 import urllib
+import oauth2 as oauth
+from twitter import Api
+from urlparse import parse_qsl
 
+from zope.component import getUtility
 from zope.publisher.browser import BrowserView
 
-from collective.beaker.interfaces import ISession
-
+from plone.registry.interfaces import IRegistry
+from Products.PluggableAuthService.interfaces.plugins import IExtractionPlugin
 from Products.statusmessages.interfaces import IStatusMessage
+from collective.beaker.interfaces import ISession
 
 from cs.auth.twitter import TWMessageFactory as _
 from cs.auth.twitter.plugin import SessionKeys
+from cs.auth.twitter.interfaces import ICSTwitterPlugin
 
-import oauth2 as oauth
-
-from urlparse import parse_qsl
-from Products.PluggableAuthService.interfaces.plugins import IExtractionPlugin
-from interfaces import ICSTwitterPlugin
 
 TWITTER_REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
 TWITTER_ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token'
 TWITTER_AUTH_URL = 'https://api.twitter.com/oauth/authorize'
-TWITTER_USER_DATA_URL = 'https://api.twitter.com/1/users/show.json'
 
 class AuthorizationTokenKeys:
     """Constants used to look up authorization keys
@@ -128,8 +126,7 @@ class TwitterLoginVerify(BrowserView):
         session[SessionKeys.screen_name]        = access_token['screen_name']
         session[SessionKeys.oauth_token]        = access_token['oauth_token']
         session[SessionKeys.oauth_token_secret] = access_token['oauth_token_secret']
-            
-        from twitter import Api
+                    
         api = Api(consumer_key=TWITTER_CONSUMER_KEY,
                   consumer_secret=TWITTER_CONSUMER_SECRET, 
                   access_token_key=session[AuthorizationTokenKeys.oauth_token], 

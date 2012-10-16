@@ -4,6 +4,12 @@ Changelog
 1.0b2 (UNRELEASED)
 -------------------
 
+- Remove IRolesPlugin implementation
+  [erral]
+
+- Add missing oauth2 dependency
+  [erral]
+
 - Change user action name not to clash with Plone's
   [erral]
 
