@@ -192,32 +192,16 @@ class CSTwitterUsers(BasePlugin):
           present
         """
         
-        if request is None:
-            request = getRequest()
-        
-        session = ISession(request, None)
-        if session is None:
+        # If this is a Twitter User, it implements ITwitterUser
+        if not ITwitterUser.providedBy(user):
             return {}
-        
-        # Is this an cs.auth.Twitter Twitter user?
-        if session.get(SessionKeys.user_id, None) == user.getId():            
-            return {
-                'fullname': session.get(SessionKeys.name, ''),
-                'description': session.get(SessionKeys.description, ''),
-                'location': session.get(SessionKeys.location, ''),
-            }
 
         else:
-            # If this is a Twitter User, it implements ITwitterUser
-            if not ITwitterUser.providedBy(user):
+            user_data = self._storage.get(user.getId(), None)
+            if user_data is None:
                 return {}
 
-            else:
-                user_data = self._storage.get(user.getId(), None)
-                if user_data is None:
-                    return {}
-
-                return user_data
+            return user_data
    
     #
     # IUserEnumerationPlugin
@@ -292,17 +276,18 @@ class CSTwitterUsers(BasePlugin):
             if user_data is not None:
                 return ({
                          'id': id,
-                         'login': id,
+                         'login': user_data.get('screen_name'),
                          'pluginid': self.getId(),
                      },)
             return ()
 
         else:
+            # XXX: return all users, without any matching
             data = []
             for id, user_data in self._storage.items():
                 data.append({
                          'id': id,
-                         'login': id,
+                         'login': user_data.get('screen_name'),
                          'pluginid': self.getId(),
                     })
             return data
