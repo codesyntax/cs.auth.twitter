@@ -4,6 +4,9 @@ Changelog
 1.0b2 (UNRELEASED)
 -------------------
 
+- Inherit from PloneUser instead of PropertiedUser
+  [erral]
+
 - Remove IRolesPlugin implementation
   [erral]
 

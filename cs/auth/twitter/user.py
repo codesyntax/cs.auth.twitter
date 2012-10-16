@@ -1,7 +1,7 @@
 from zope.interface import implements
 from interfaces import ITwitterUser
-from Products.PluggableAuthService.PropertiedUser import PropertiedUser
+from Products.PlonePAS.plugins.ufactory import PloneUser
 
-class TwitterUser(PropertiedUser):
+class TwitterUser(PloneUser):
     implements(ITwitterUser)
 
