@@ -4,8 +4,6 @@ import logging
 from zope.interface import implements
 from zope.publisher.browser import BrowserView
 
-from zope.globalrequest import getRequest
-
 from collective.beaker.interfaces import ISession
 
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
@@ -272,13 +270,13 @@ class CSTwitterUsers(BasePlugin):
                 except ValueError:
                     return ()
 
-            user_data = self._storage.get(id, None)
-            if user_data is not None:
-                return ({
-                         'id': id,
-                         'login': user_data.get('screen_name'),
-                         'pluginid': self.getId(),
-                     },)
+                user_data = self._storage.get(id, None)
+                if user_data is not None:
+                    return ({
+                             'id': id,
+                             'login': user_data.get('screen_name'),
+                             'pluginid': self.getId(),
+                         },)
             return ()
 
         else:
