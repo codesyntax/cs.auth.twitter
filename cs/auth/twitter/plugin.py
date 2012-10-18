@@ -12,6 +12,7 @@ from Products.PluggableAuthService.interfaces.plugins import (
         IExtractionPlugin,
         IAuthenticationPlugin,
         ICredentialsResetPlugin,
+        IRolesPlugin,
         IPropertiesPlugin,
         IUserEnumerationPlugin,
         IUserFactoryPlugin
@@ -66,6 +67,7 @@ class CSTwitterUsers(BasePlugin):
             ICSTwitterPlugin,
             IExtractionPlugin,
             ICredentialsResetPlugin,
+            IRolesPlugin,
             IAuthenticationPlugin,
             IPropertiesPlugin,
             IUserEnumerationPlugin,
@@ -111,12 +113,27 @@ class CSTwitterUsers(BasePlugin):
                 }
         
         return None
+
+
+    #
+    # IRolesPlugin
+    #
+    def getRolesForPrincipal(selfm, principal, request=None):
+        """ Return a list of roles for the given principal (user or object)
+
+        We simply grant the Member role to every user authenticated
+        using this plugin 
+        """
+        if ITwitterUser.providedBy(principal):
+            return ('Member', )
+
+        return ()
+
+
     
     #
     # IAuthenticationPlugin
     # 
-    
-    
     def authenticateCredentials(self, credentials):
         """This method is called with the credentials that have been
         extracted by extractCredentials(), to determine whether the user is
