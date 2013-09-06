@@ -129,7 +129,7 @@ class TwitterLoginVerify(BrowserView):
                 'oauth_verifier': oauth_verifier,
             }
         body = urllib.urlencode(args)
-        resp, content = client.request(TWITTER_ACCESS_TOKEN_URL, 'POST', body=body)
+        resp, content = client.request(TWITTER_ACCESS_TOKEN_URL, 'POST', body)
         if resp.get('status', '999') != '200':
             IStatusMessage(self.request).add(_(u"Error authenticating with Twitter. Please try again."), type="error")
             self.request.response.redirect(self.context.absolute_url())
