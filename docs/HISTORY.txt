@@ -1,6 +1,14 @@
 Changelog
 =========
 
+1.0b4 (UNRELEASED)
+--------------------
+
+
+- Fix Access Token Request
+  [erral]
+
+
 1.0b3 (2012-10-18)
 --------------------
 
