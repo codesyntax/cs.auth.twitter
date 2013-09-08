@@ -4,6 +4,9 @@ Changelog
 1.0b4 (UNRELEASED)
 --------------------
 
+- Fix to add the plugin through the ZMI
+  [erral]
+
 - Use Twitter API directly to get user information
   [erral]
 
