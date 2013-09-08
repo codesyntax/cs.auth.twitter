@@ -1,19 +1,18 @@
-from zope.component import getMultiAdapter
-import urllib
-import oauth2 as oauth
+from collective.beaker.interfaces import ISession
+from cs.auth.twitter import TWMessageFactory as _
+from cs.auth.twitter.interfaces import ICSTwitterPlugin
+from cs.auth.twitter.plugin import SessionKeys
+from plone.registry.interfaces import IRegistry
+from Products.CMFPlone import PloneMessageFactory as pmf
+from Products.PluggableAuthService.interfaces.plugins import IExtractionPlugin
+from Products.statusmessages.interfaces import IStatusMessage
 from urlparse import parse_qsl
-
+from zope.component import getMultiAdapter
 from zope.component import getUtility
 from zope.publisher.browser import BrowserView
 
-from plone.registry.interfaces import IRegistry
-from Products.PluggableAuthService.interfaces.plugins import IExtractionPlugin
-from Products.statusmessages.interfaces import IStatusMessage
-from collective.beaker.interfaces import ISession
-from Products.CMFPlone import PloneMessageFactory as pmf
-from cs.auth.twitter import TWMessageFactory as _
-from cs.auth.twitter.plugin import SessionKeys
-from cs.auth.twitter.interfaces import ICSTwitterPlugin
+import oauth2 as oauth
+import urllib
 
 try:
     import json
