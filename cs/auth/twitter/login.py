@@ -21,12 +21,13 @@ TWITTER_REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
 TWITTER_ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token'
 TWITTER_AUTH_URL = 'https://api.twitter.com/oauth/authorize'
 
+
 class AuthorizationTokenKeys:
     """Constants used to look up authorization keys
     """
 
-    oauth_token              = "cs.auth.twitter.oauth_token"
-    oauth_token_secret       = "cs.auth.twitter.oauth_token_secret"
+    oauth_token = "cs.auth.twitter.oauth_token"
+    oauth_token_secret = "cs.auth.twitter.oauth_token_secret"
     oauth_callback_confirmed = "cs.auth.twitter.oauth_callback_confirmed"
 
 
@@ -53,15 +54,19 @@ class TwitterLogin(BrowserView):
 
         oauth_client = oauth.Client(oauth_consumer)
 
-        # Set the callback URL. Be sure that callback urls are allowed in Twitter
-        # App configuration. Do not leave blank the field of the callback url
-        # when creating the app, otherwise this login method *will not work*.
+        # Set the callback URL. Be sure that callback urls are allowed in
+        # Twitter App configuration. Do not leave blank the field of the
+        # callback url when creating the app, otherwise this login method
+        # *will not work*.
         return_args = ''
         if self.request.get('came_from', None) is not None:
             return_args = {'came_from': self.request.get('came_from')}
             return_args = '?' + urllib.urlencode(return_args)
 
-        pps = getMultiAdapter((self.context, self.request), name='plone_portal_state')
+        pps = getMultiAdapter(
+            (self.context, self.request),
+            name='plone_portal_state'
+        )
         portal_url = pps.portal_url()
 
         url = portal_url + '/@@twitter-login-verify'
@@ -70,10 +75,16 @@ class TwitterLogin(BrowserView):
                 'oauth_callback': url,
             }
         body = urllib.urlencode(args)
-        resp, content = oauth_client.request(TWITTER_REQUEST_TOKEN_URL, 'POST', body=body)
+        resp, content = oauth_client.request(
+            TWITTER_REQUEST_TOKEN_URL, 'POST',
+            body=body
+        )
 
         if resp.get('status', '999') != '200':
-            IStatusMessage(self.request).add(_(u"Error getting the authorization token from Twitter. Try again please"), type="error")
+            msg = _(u"Error getting the authorization token from Twitter. "
+                    u"Try again please"
+            )
+            IStatusMessage(self.request).add(msg, type="error")
             self.request.response.redirect(self.context.absolute_url())
             return u""
         else:
@@ -87,7 +98,7 @@ class TwitterLogin(BrowserView):
             session.save()
 
             args = {
-                'oauth_token' : request_token['oauth_token'],
+                'oauth_token': request_token['oauth_token'],
             }
 
             self.request.response.redirect(
@@ -100,9 +111,9 @@ class TwitterLoginVerify(BrowserView):
         This BrowserView handles the 2nd step of the Oauth authentication with
         Twitter.
 
-        It checks the authentication token saved in the 1st step against Twitter
-        and if it's successful saves everything in the session so that Plone's
-        Authentication and Credential extraction plugin
+        It checks the authentication token saved in the 1st step against
+        Twitter and if it's successful saves everything in the session so that
+        Plone's Authentication and Credential extraction plugin
     """
     def __call__(self):
         registry = getUtility(IRegistry)
@@ -115,7 +126,8 @@ class TwitterLoginVerify(BrowserView):
         session = ISession(self.request)
 
         if oauth_token != session[AuthorizationTokenKeys.oauth_token]:
-            IStatusMessage(self.request).add(_(u"Your oauth token is not correct. Please try again"), type="error")
+            msg = _(u"Your oauth token is not correct. Please try again")
+            IStatusMessage(self.request).add(msg, type="error")
             self.request.response.redirect(self.context.absolute_url())
             return u""
 
@@ -131,7 +143,8 @@ class TwitterLoginVerify(BrowserView):
         body = urllib.urlencode(args)
         resp, content = client.request(TWITTER_ACCESS_TOKEN_URL, 'POST', body)
         if resp.get('status', '999') != '200':
-            IStatusMessage(self.request).add(_(u"Error authenticating with Twitter. Please try again."), type="error")
+            msg = _(u"Error authenticating with Twitter. Please try again.")
+            IStatusMessage(self.request).add(msg, type="error")
             self.request.response.redirect(self.context.absolute_url())
             return u""
 
@@ -139,9 +152,9 @@ class TwitterLoginVerify(BrowserView):
         # Save the data in the session so that the extraction plugin can
         # authenticate the user to Plone
         session = ISession(self.request)
-        session[SessionKeys.user_id]            = str(access_token['user_id'])
-        session[SessionKeys.screen_name]        = access_token['screen_name']
-        session[SessionKeys.oauth_token]        = access_token['oauth_token']
+        session[SessionKeys.user_id] = str(access_token['user_id'])
+        session[SessionKeys.screen_name] = access_token['screen_name']
+        session[SessionKeys.oauth_token] = access_token['oauth_token']
         session[SessionKeys.oauth_token_secret] = access_token['oauth_token_secret']
 
         api = Api(consumer_key=TWITTER_CONSUMER_KEY,
@@ -164,20 +177,22 @@ class TwitterLoginVerify(BrowserView):
             plugin = getattr(acl_plugins, id)
             if ICSTwitterPlugin.providedBy(plugin):
                 if plugin._storage.get(session[SessionKeys.user_id], None) is None:
-                    user_data = {'screen_name': session[SessionKeys.screen_name],
-                                 'fullname': session[SessionKeys.name],
-                                 'profile_image_url': session[SessionKeys.profile_image_url],
-                                 'description': session[SessionKeys.description],
-                                 'location': session[SessionKeys.location]
-                                     }
+                    user_data = {
+                        'screen_name': session[SessionKeys.screen_name],
+                        'fullname': session[SessionKeys.name],
+                        'profile_image_url': session[SessionKeys.profile_image_url],
+                        'description': session[SessionKeys.description],
+                        'location': session[SessionKeys.location]
+                    }
                     plugin._storage[session[SessionKeys.user_id]] = user_data
 
-
-        IStatusMessage(self.request).add(_(u"Welcome. You are now logged in."), type="info")
+        msg = _(u"Welcome. You are now logged in.")
+        IStatusMessage(self.request).add(msg, type="info")
 
         return_args = ''
         if self.request.get('came_from', None) is not None:
             return_args = {'came_from': self.request.get('came_from')}
             return_args = '?' + urllib.urlencode(return_args)
 
-        self.request.response.redirect(self.context.absolute_url() + '/logged_in' + return_args)
+        return_url = self.context.absolute_url() + '/logged_in' + return_args
+        self.request.response.redirect(return_url)
