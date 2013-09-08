@@ -11,7 +11,7 @@ from plone.registry.interfaces import IRegistry
 from Products.PluggableAuthService.interfaces.plugins import IExtractionPlugin
 from Products.statusmessages.interfaces import IStatusMessage
 from collective.beaker.interfaces import ISession
-
+from Products.CMFPlone import PloneMessageFactory as pmf
 from cs.auth.twitter import TWMessageFactory as _
 from cs.auth.twitter.plugin import SessionKeys
 from cs.auth.twitter.interfaces import ICSTwitterPlugin
@@ -191,7 +191,7 @@ class TwitterLoginVerify(BrowserView):
                     }
                     plugin._storage[session[SessionKeys.user_id]] = user_data
 
-        msg = _(u"Welcome. You are now logged in.")
+        msg = pmf(u"Welcome. You are now logged in.")
         IStatusMessage(self.request).add(msg, type="info")
 
         return_args = ''
