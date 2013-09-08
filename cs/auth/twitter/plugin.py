@@ -2,8 +2,7 @@ from BTrees.OOBTree import OOBTree
 from cs.auth.twitter.user import TwitterUser
 from cs.auth.twitter.interfaces import ITwitterUser, ICSTwitterPlugin
 from collective.beaker.interfaces import ISession
-from zope.interface import implements
-from zope.publisher.browser import BrowserView
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.interfaces.plugins import (
         IExtractionPlugin,
@@ -14,6 +13,8 @@ from Products.PluggableAuthService.interfaces.plugins import (
         IUserEnumerationPlugin,
         IUserFactoryPlugin
     )
+from zope.interface import implements
+from zope.publisher.browser import BrowserView
 
 import logging
 logger = logging.getLogger('cs.auth.twitter')
@@ -39,8 +40,9 @@ class AddForm(BrowserView):
     """Add form the PAS plugin
     """
 
-    def __call__(self):
+    _template = ViewPageTemplateFile('addform.pt')
 
+    def __call__(self):
         if 'form.button.Add' in self.request.form:
             name = self.request.form.get('id')
             title = self.request.form.get('title')
@@ -51,6 +53,8 @@ class AddForm(BrowserView):
             self.request.response.redirect(self.context.absolute_url() +
                     '/manage_workspace?manage_tabs_message=Plugin+added.')
 
+        else:
+            return self._template(self.request)
 
 class CSTwitterUsers(BasePlugin):
     """PAS plugin for authentication against Twitter.
