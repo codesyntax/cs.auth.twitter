@@ -72,7 +72,7 @@ class TwitterLogin(BrowserView):
         )
         portal_url = pps.portal_url()
 
-        url = portal_url + '/@@twitter-login-verify'
+        url = portal_url + '/@@twitter-login-verify' + return_args
 
         args = {
                 'oauth_callback': url,
