@@ -1,7 +1,6 @@
 from zope.component import getMultiAdapter
 import urllib
 import oauth2 as oauth
-from twitter import Api
 from urlparse import parse_qsl
 
 from zope.component import getUtility
