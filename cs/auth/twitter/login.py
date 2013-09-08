@@ -16,10 +16,15 @@ from cs.auth.twitter import TWMessageFactory as _
 from cs.auth.twitter.plugin import SessionKeys
 from cs.auth.twitter.interfaces import ICSTwitterPlugin
 
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 TWITTER_REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
 TWITTER_ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token'
 TWITTER_AUTH_URL = 'https://api.twitter.com/oauth/authorize'
+TWITTER_USER_DATA_URL = 'https://api.twitter.com/1.1/users/show.json'
 
 
 class AuthorizationTokenKeys:
@@ -162,16 +167,30 @@ class TwitterLoginVerify(BrowserView):
         session[SessionKeys.oauth_token_secret] = access_token['oauth_token_secret']
 
         # Query Twitter API for user data
-        api = Api(consumer_key=TWITTER_CONSUMER_KEY,
-                  consumer_secret=TWITTER_CONSUMER_SECRET,
-                  access_token_key=session[AuthorizationTokenKeys.oauth_token],
-                  access_token_secret=session[AuthorizationTokenKeys.oauth_token_secret])
+        token = oauth.Token(session[SessionKeys.oauth_token],
+                            session[SessionKeys.oauth_token_secret],
+                            )
+        consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY,
+                                  secret=TWITTER_CONSUMER_SECRET)
+        client = oauth.Client(consumer, token)
+        args = {
+                'user_id': session[SessionKeys.user_id]
+            }
+        body = urllib.urlencode(args)
+        url = TWITTER_USER_DATA_URL + '?' + body
+        resp, content = client.request(url, 'GET')
+        if resp.get('status', '999') != '200':
+            msg = _(u"Error getting user information. Please try again.")
+            IStatusMessage(self.request).add(msg, type="error")
+            self.request.response.redirect(self.context.absolute_url())
+            return u""
 
-        us = api.GetUser(str(access_token['user_id']))
-        session[SessionKeys.name] = us.name
-        session[SessionKeys.profile_image_url] = us.profile_image_url
-        session[SessionKeys.description] = us.description
-        session[SessionKeys.location] = us.location
+        us = json.loads(content)
+        session[SessionKeys.screen_name] = us.get(u'screen_name', '')
+        session[SessionKeys.name] = us.get(u'name', session[SessionKeys.screen_name])
+        session[SessionKeys.profile_image_url] = us.get(u'profile_image_url', '')
+        session[SessionKeys.description] = us.get(u'description', '')
+        session[SessionKeys.location] = us.get(u'location')
         session.save()
 
         # Add user data into our plugin storage:
