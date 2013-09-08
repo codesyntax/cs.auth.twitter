@@ -125,12 +125,15 @@ class TwitterLoginVerify(BrowserView):
 
         session = ISession(self.request)
 
+        # Check if the provided oauth_token and the one we have from the
+        # previous step are the same.
         if oauth_token != session[AuthorizationTokenKeys.oauth_token]:
             msg = _(u"Your oauth token is not correct. Please try again")
             IStatusMessage(self.request).add(msg, type="error")
             self.request.response.redirect(self.context.absolute_url())
             return u""
 
+        # Check if the provided verifier is OK, querying Twitter API.
         token = oauth.Token(session[AuthorizationTokenKeys.oauth_token],
                             session[AuthorizationTokenKeys.oauth_token_secret],
                             )
@@ -148,15 +151,17 @@ class TwitterLoginVerify(BrowserView):
             self.request.response.redirect(self.context.absolute_url())
             return u""
 
-        access_token = dict(parse_qsl(content))
         # Save the data in the session so that the extraction plugin can
-        # authenticate the user to Plone
+        # authenticate the user to Plone and save the oauth_token
+        # for future queries to Twitter API
+        access_token = dict(parse_qsl(content))
         session = ISession(self.request)
         session[SessionKeys.user_id] = str(access_token['user_id'])
         session[SessionKeys.screen_name] = access_token['screen_name']
         session[SessionKeys.oauth_token] = access_token['oauth_token']
         session[SessionKeys.oauth_token_secret] = access_token['oauth_token_secret']
 
+        # Query Twitter API for user data
         api = Api(consumer_key=TWITTER_CONSUMER_KEY,
                   consumer_secret=TWITTER_CONSUMER_SECRET,
                   access_token_key=session[AuthorizationTokenKeys.oauth_token],
