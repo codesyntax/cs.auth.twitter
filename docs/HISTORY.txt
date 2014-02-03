@@ -4,6 +4,9 @@ Changelog
 1.0b4 (UNRELEASED)
 --------------------
 
+- Remove roles plugin implementation
+  [erral]
+
 - Fix user search
   [erral]
 
