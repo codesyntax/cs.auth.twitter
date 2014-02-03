@@ -239,15 +239,15 @@ class CSTwitterUsers(BasePlugin):
                 if stored_value is None:
                     return False
 
-                if isinstance(stored_value, unicode):
+                if not isinstance(stored_value, unicode):
                     stored_value = stored_value.decode('utf-8')
-                if isinstance(searchstring, unicode):
+                if not isinstance(searchstring, unicode):
                     searchstring = searchstring.decode('utf-8')
 
                 if exact_match and searchstring != stored_value:
                     return False
                 else:
-                    if searchstring not in stored_value:
+                    if searchstring.lower() not in stored_value.lower():
                         return False
             return True
 

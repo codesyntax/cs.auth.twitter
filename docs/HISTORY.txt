@@ -4,6 +4,9 @@ Changelog
 1.0b4 (UNRELEASED)
 --------------------
 
+- Fix user search
+  [erral]
+
 - Fix to add the plugin through the ZMI
   [erral]
 
