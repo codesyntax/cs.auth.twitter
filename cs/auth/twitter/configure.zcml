@@ -7,12 +7,8 @@
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     i18n_domain="cs.auth.facebook">
 
+    <includeDependencies package="." />
     <i18n:registerTranslations directory="locales" />
-
-    <!-- Required packages -->
-    <include package="collective.beaker" />
-    <include package="five.globalrequest" />
-    
 
     <genericsetup:registerProfile
         name="default"
@@ -20,7 +16,7 @@
         directory="profiles/default"
         description="Allows users to log in with Twitter"
         provides="Products.GenericSetup.interfaces.EXTENSION"
-        />     
+        />
 
     <genericsetup:importStep
         name="cs.auth.twitter-various"
@@ -29,25 +25,25 @@
         handler="cs.auth.twitter.setuphandlers.importVarious">
         <depends name="rolemap"/>
     </genericsetup:importStep>
-    
-    <five:registerClass 
-        class=".plugin.CSTwitterUsers" 
-        meta_type="CSTwitterUsers" 
-        permission="zope2.ViewManagementScreens" 
+
+    <five:registerClass
+        class=".plugin.CSTwitterUsers"
+        meta_type="CSTwitterUsers"
+        permission="zope2.ViewManagementScreens"
         addview="cs-add-twitter-users-plugin"
-        /> 
-    
+        />
+
     <pas:registerMultiPlugin
         meta_type="CSTwitterUsers"
         />
-    
+
     <browser:page
         name="cs-add-twitter-users-plugin"
         for="zope.browser.interfaces.IAdding"
         class=".plugin.AddForm"
         permission="zope2.ViewManagementScreens"
         />
-    
+
     <browser:page
         name="twitter-login"
         for="Products.CMFCore.interfaces.ISiteRoot"
@@ -69,8 +65,8 @@
         permission="cmf.ManagePortal"
         class=".controlpanel.TwitterLoginControlPanelView"
     />
-      
+
   <!-- -*- extra stuff goes here -*- -->
-  
+
 
 </configure>
