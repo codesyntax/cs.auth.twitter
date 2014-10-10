@@ -25,15 +25,8 @@ setup(name='cs.auth.twitter',
       zip_safe=False,
       install_requires=[
           'setuptools',
-          'zope.interface',
-          'zope.publisher',
-          'zope.i18nmessageid',
-          'five.globalrequest',
           'collective.beaker',
           'oauth2',
-          'Products.PluggableAuthService',
-          'Products.PlonePAS',
-          'Products.statusmessages',
       ],
       entry_points="""
       # -*- Entry points: -*-
