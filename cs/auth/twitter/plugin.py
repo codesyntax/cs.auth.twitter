@@ -1,18 +1,19 @@
 from BTrees.OOBTree import OOBTree
 from copy import copy
-from cs.auth.twitter.user import TwitterUser
 from cs.auth.twitter.interfaces import ITwitterUser, ICSTwitterPlugin
-from collective.beaker.interfaces import ISession
+from cs.auth.twitter.user import TwitterUser
+from Products.CMFPlone import getToolByName
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.interfaces.plugins import (
-        IExtractionPlugin,
-        IAuthenticationPlugin,
-        ICredentialsResetPlugin,
-        IPropertiesPlugin,
-        IUserEnumerationPlugin,
-        IUserFactoryPlugin
-    )
+    IExtractionPlugin,
+    IAuthenticationPlugin,
+    ICredentialsResetPlugin,
+    IPropertiesPlugin,
+    IUserEnumerationPlugin,
+    IUserFactoryPlugin
+)
+from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
+from zope.component.hooks import getSite
 from zope.interface import implements
 from zope.publisher.browser import BrowserView
 
@@ -57,21 +58,20 @@ class AddForm(BrowserView):
 class CSTwitterUsers(BasePlugin):
     """PAS plugin for authentication against Twitter.
 
-    Here, we implement a number of PAS interfaces, using a session managed
-    by Beaker (via collective.beaker) to temporarily store the values we
-    have captured.
+    Here, we implement a number of PAS interfaces, using session_data_manager
+    to temporarily store the values we have captured.
     """
 
     # List PAS interfaces we implement here
     implements(
-            ICSTwitterPlugin,
-            IExtractionPlugin,
-            ICredentialsResetPlugin,
-            IAuthenticationPlugin,
-            IPropertiesPlugin,
-            IUserEnumerationPlugin,
-            IUserFactoryPlugin,
-        )
+        ICSTwitterPlugin,
+        IExtractionPlugin,
+        ICredentialsResetPlugin,
+        IAuthenticationPlugin,
+        IPropertiesPlugin,
+        IUserEnumerationPlugin,
+        IUserFactoryPlugin,
+    )
 
     def __init__(self, id, title=None):
         self.__name__ = self.id = id
@@ -93,9 +93,9 @@ class CSTwitterUsers(BasePlugin):
           appropriate credentials.
         """
 
-        # Get the session from Beaker.
-
-        session = ISession(request, None)
+        # Get the session from session_data_manager
+        sdm = getToolByName(getSite(), "session_data_manager")
+        session = sdm.getSessionData(create=False)
 
         if session is None:
             return None
@@ -106,10 +106,10 @@ class CSTwitterUsers(BasePlugin):
         if SessionKeys.user_id in session:
 
             return {
-                    'src': self.getId(),
-                    'userid': session[SessionKeys.user_id],
-                    'username': session[SessionKeys.screen_name],
-                }
+                'src': self.getId(),
+                'userid': session[SessionKeys.user_id],
+                'username': session[SessionKeys.screen_name],
+            }
 
         return None
 
@@ -160,11 +160,12 @@ class CSTwitterUsers(BasePlugin):
 
         Here, we simply destroy their session.
         """
-        session = ISession(request, None)
+        sdm = getToolByName(getSite(), "session_data_manager")
+        session = sdm.getSessionData(create=False)
         if session is None:
             return
 
-        session.delete()
+        session.invalidate()
 
     #
     # IPropertiesPlugin
@@ -243,10 +244,11 @@ class CSTwitterUsers(BasePlugin):
                 name = id or login
                 data = self._storage.get(name, None)
                 if data is not None:
-                    return ({'id': name,
-                           'login': name,
-                           'title': data.get('fullname'),
-                           'pluginid': self.getId()}, )
+                    return ({
+                        'id': name,
+                        'login': name,
+                        'title': data.get('fullname'),
+                        'pluginid': self.getId()})
                 else:
                     return ()
         criterias = copy(kw)

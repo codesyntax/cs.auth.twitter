@@ -1,8 +1,8 @@
-from collective.beaker.interfaces import ISession
 from cs.auth.twitter import TWMessageFactory as _
 from cs.auth.twitter.interfaces import ICSTwitterPlugin
 from cs.auth.twitter.plugin import SessionKeys
 from plone.registry.interfaces import IRegistry
+from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone import PloneMessageFactory as pmf
 from Products.PluggableAuthService.interfaces.plugins import IExtractionPlugin
 from Products.statusmessages.interfaces import IStatusMessage
@@ -75,8 +75,8 @@ class TwitterLogin(BrowserView):
         url = portal_url + '/@@twitter-login-verify' + return_args
 
         args = {
-                'oauth_callback': url,
-            }
+            'oauth_callback': url,
+        }
         body = urllib.urlencode(args)
         resp, content = oauth_client.request(
             TWITTER_REQUEST_TOKEN_URL, 'POST',
@@ -94,7 +94,8 @@ class TwitterLogin(BrowserView):
             # The request was successful, so save the token in the session
             # and redirect the user to Twitter
             request_token = dict(parse_qsl(content))
-            session = ISession(self.request)
+            sdm = getToolByName(self.context, "session_data_manager")
+            session = sdm.getSessionData(create=True)
             session[AuthorizationTokenKeys.oauth_token] = request_token['oauth_token']
             session[AuthorizationTokenKeys.oauth_token_secret] = request_token['oauth_token_secret']
             session[AuthorizationTokenKeys.oauth_callback_confirmed] = request_token['oauth_callback_confirmed']
@@ -105,8 +106,8 @@ class TwitterLogin(BrowserView):
             }
 
             self.request.response.redirect(
-                    "%s?%s" % (TWITTER_AUTH_URL, urllib.urlencode(args),)
-                )
+                "%s?%s" % (TWITTER_AUTH_URL, urllib.urlencode(args),)
+            )
 
 
 class TwitterLoginVerify(BrowserView):
@@ -126,7 +127,8 @@ class TwitterLoginVerify(BrowserView):
         oauth_token = self.request.get('oauth_token')
         oauth_verifier = self.request.get('oauth_verifier')
 
-        session = ISession(self.request)
+        sdm = getToolByName(self.context, "session_data_manager")
+        session = sdm.getSessionData(create=False)
 
         # Check if the provided oauth_token and the one we have from the
         # previous step are the same.
@@ -137,15 +139,18 @@ class TwitterLoginVerify(BrowserView):
             return u""
 
         # Check if the provided verifier is OK, querying Twitter API.
-        token = oauth.Token(session[AuthorizationTokenKeys.oauth_token],
-                            session[AuthorizationTokenKeys.oauth_token_secret],
-                            )
-        consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY,
-                                 secret=TWITTER_CONSUMER_SECRET)
+        token = oauth.Token(
+            session[AuthorizationTokenKeys.oauth_token],
+            session[AuthorizationTokenKeys.oauth_token_secret],
+        )
+        consumer = oauth.Consumer(
+            key=TWITTER_CONSUMER_KEY,
+            secret=TWITTER_CONSUMER_SECRET
+        )
         client = oauth.Client(consumer, token)
         args = {
-                'oauth_verifier': oauth_verifier,
-            }
+            'oauth_verifier': oauth_verifier,
+        }
         body = urllib.urlencode(args)
         resp, content = client.request(TWITTER_ACCESS_TOKEN_URL, 'POST', body)
         if resp.get('status', '999') != '200':
@@ -158,22 +163,25 @@ class TwitterLoginVerify(BrowserView):
         # authenticate the user to Plone and save the oauth_token
         # for future queries to Twitter API
         access_token = dict(parse_qsl(content))
-        session = ISession(self.request)
+        session = sdm.getSessionData(create=False)
         session[SessionKeys.user_id] = str(access_token['user_id'])
         session[SessionKeys.screen_name] = access_token['screen_name']
         session[SessionKeys.oauth_token] = access_token['oauth_token']
         session[SessionKeys.oauth_token_secret] = access_token['oauth_token_secret']
 
         # Query Twitter API for user data
-        token = oauth.Token(session[SessionKeys.oauth_token],
-                            session[SessionKeys.oauth_token_secret],
-                            )
-        consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY,
-                                  secret=TWITTER_CONSUMER_SECRET)
+        token = oauth.Token(
+            session[SessionKeys.oauth_token],
+            session[SessionKeys.oauth_token_secret],
+        )
+        consumer = oauth.Consumer(
+            key=TWITTER_CONSUMER_KEY,
+            secret=TWITTER_CONSUMER_SECRET
+        )
         client = oauth.Client(consumer, token)
         args = {
-                'user_id': session[SessionKeys.user_id]
-            }
+            'user_id': session[SessionKeys.user_id]
+        }
         body = urllib.urlencode(args)
         url = TWITTER_USER_DATA_URL + '?' + body
         resp, content = client.request(url, 'GET')

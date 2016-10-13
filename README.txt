@@ -15,21 +15,6 @@ Installation and getting started
 
 Add `cs.auth.twitter` to your buildout.cfg's eggs list. It will install all required dependencies.
 
-You have to add a configuration similar to this to the `[instance]`
-section of your buildout file::
-
- zope-conf-additional =
-    <product-config beaker>
-        session type     file
-        session.data_dir ${buildout:directory}/var/sessions/data
-        session.lock_dir ${buildout:directory}/var/sessions/lock
-        session.key      beaker.session
-        session.secret   this-is-my-secret-${buildout:directory}
-    </product-config>
-
-This is needed because we are using collective.beaker to handle Twitter login
-session information.
-
 Install the product in the Plone Control Panel. This will create a "Login with
 Twitter" action into the personal tools toolbar in Plone.
 
@@ -48,4 +33,3 @@ Compatibility
 ==============
 
 Plone 4.x
-

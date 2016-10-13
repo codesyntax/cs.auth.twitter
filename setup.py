@@ -25,7 +25,6 @@ setup(name='cs.auth.twitter',
       zip_safe=False,
       install_requires=[
           'setuptools',
-          'collective.beaker',
           'oauth2',
       ],
       entry_points="""
