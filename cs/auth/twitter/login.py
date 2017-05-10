@@ -216,8 +216,6 @@ class TwitterLoginVerify(BrowserView):
                     }
                     plugin._storage[session[SessionKeys.user_id]] = user_data
 
-        msg = pmf(u"Welcome. You are now logged in.")
-        IStatusMessage(self.request).add(msg, type="info")
 
         return_args = ''
         if self.request.get('came_from', None) is not None:
