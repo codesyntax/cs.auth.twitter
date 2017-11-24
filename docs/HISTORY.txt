@@ -1,8 +1,8 @@
 Changelog
 =========
 
-1.2 (unreleased)
-----------------
+1.1.1 (2017-11-24)
+------------------
 
 - fix import [Mikel Larreategi <mlarreategi@codesyntax.com>]
 
