@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '.dev0'
+version = '1.2.dev0'
 
 setup(name='cs.auth.twitter',
       version=version,
