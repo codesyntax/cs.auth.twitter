@@ -2,7 +2,7 @@ from BTrees.OOBTree import OOBTree
 from copy import copy
 from cs.auth.twitter.interfaces import ITwitterUser, ICSTwitterPlugin
 from cs.auth.twitter.user import TwitterUser
-from Products.CMFPlone import getToolByName
+from Products.CMFPlone.utils import getToolByName
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.PluggableAuthService.interfaces.plugins import (
     IExtractionPlugin,
